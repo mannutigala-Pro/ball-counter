@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Ball Counter</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+  html,body{margin:0;height:100%;background:#0f172a;color:#fff;font-family:Arial,sans-serif;touch-action:manipulation;overflow:hidden}
+  #screen{height:100%;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+  #main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  #label{font-size:18px;opacity:.6;letter-spacing:2px}
+  #count{font-size:35vw;font-weight:bold;line-height:1}
+  #overs{font-size:22px;opacity:.7;margin-top:8px}
+  #bar{display:flex;gap:10px;padding:12px}
+  button{flex:1;border:0;border-radius:14px;color:#fff;font-size:18px;font-weight:bold;padding:18px 6px}
+  button small{display:block;font-size:26px;margin-top:4px}
+  #wide{background:#2563eb}
+  #noball{background:#d97706}
+  #reset{background:#dc2626}
+  button:active{opacity:.7}
+</style>
+</head>
+<body>
+<div id="screen">
+  <div id="main">
+    <div id="label">BALLS</div>
+    <div id="count">0</div>
+    <div id="overs">Overs 0.0</div>
+  </div>
+  <div id="bar">
+    <button id="wide">WIDE<small id="wv">0</small></button>
+    <button id="noball">NO BALL<small id="nv">0</small></button>
+    <button id="reset">RESET</button>
+  </div>
+</div>
+<script>
+var c=0,w=0,n=0;
+try{var s=JSON.parse(localStorage.getItem('ballcounter')||'null');if(s){c=s.c||0;w=s.w||0;n=s.n||0;}}catch(e){}
+function save(){try{localStorage.setItem('ballcounter',JSON.stringify({c:c,w:w,n:n}))}catch(e){}}
+var ac=null;
+function buzz(f){
+  try{navigator.vibrate&&navigator.vibrate(30)}catch(e){}
+  try{
+    ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+    if(ac.state==='suspended')ac.resume();
+    var o=ac.createOscillator(),g=ac.createGain();
+    o.type='square';o.frequency.value=f||900;
+    g.gain.setValueAtTime(0.25,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.06);
+    o.connect(g);g.connect(ac.destination);
+    o.start();o.stop(ac.currentTime+0.07);
+  }catch(e){}
+}
+function draw(){
+  document.getElementById('count').textContent=c;
+  document.getElementById('overs').textContent='Overs '+Math.floor(c/6)+'.'+(c%6);
+  document.getElementById('wv').textContent=w;
+  document.getElementById('nv').textContent=n;
+  save();
+}
+document.getElementById('screen').addEventListener('pointerdown',function(){c++;buzz();draw();});
+document.getElementById('wide').addEventListener('pointerdown',function(e){e.stopPropagation();w++;buzz(600);draw();});
+document.getElementById('noball').addEventListener('pointerdown',function(e){e.stopPropagation();n++;buzz(450);draw();});
+var rb=document.getElementById('reset'),rt=null;
+rb.addEventListener('pointerdown',function(e){
+  e.stopPropagation();
+  if(rt){clearTimeout(rt);rt=null;rb.textContent='RESET';c=0;w=0;n=0;buzz(300);draw();}
+  else{rb.textContent='SURE?';rt=setTimeout(function(){rt=null;rb.textContent='RESET';},3000);}
+});
+draw();
+</script>
+</body>
+</html>
