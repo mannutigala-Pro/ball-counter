@@ -28,9 +28,10 @@ jobs:
           echo '{"appId":"com.sohel.ballcounter","appName":"Ball Counter","webDir":"www"}' > capacitor.config.json
           npx cap add android
           npx cap sync android
-
       - name: Set app icon
         run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
           RES=android/app/src/main/res
           rm -rf $RES/mipmap-anydpi-v26
           for pair in mdpi:48 hdpi:72 xhdpi:96 xxhdpi:144 xxxhdpi:192; do
@@ -40,11 +41,3 @@ jobs:
             convert icon.jpg -resize ${s}x${s} $RES/mipmap-$d/ic_launcher_round.png
             convert icon.jpg -resize ${s}x${s} $RES/mipmap-$d/ic_launcher_foreground.png
           done
-
-      - name: Build
-        run: cd android && chmod +x gradlew && ./gradlew assembleDebug
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Ball-Counter-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
